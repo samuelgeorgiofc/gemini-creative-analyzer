@@ -432,9 +432,6 @@ export default function CreativeModal({
               >
                 <FileSpreadsheet className="w-3.5 h-3.5" />
                 <span>Bulk Excel</span>
-                <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold ml-0.5">
-                  NEW
-                </span>
               </button>
             </div>
           )}

@@ -62,14 +62,14 @@ export async function createTemplateWorkbook(): Promise<ExcelJS.Workbook> {
     fgColor: { argb: 'FF4F46E5' }, // Indigo-600
   };
 
-  // Add sample rows reflecting user request naming: "PHD 1234_Brand_..."
+  // Add sample rows reflecting requested template
   const sampleRows = [
     {
-      brand: 'PHD',
+      brand: 'Brand A',
       ad_type: 'CPAS Sales',
-      format: 'Video',
-      ad_name: 'PHD 1234_Brand_Promo_HookA',
-      creative_link: 'https://www.tiktok.com/@brand/video/730000000001',
+      format: 'Carousel',
+      ad_name: 'PHD Brand A_...._...._',
+      creative_link: 'https://drive.google.com/file/d/1exampleStaticImageFile',
       spend: 5000000,
       impression: 250000,
       clicks: 3500,
@@ -79,11 +79,11 @@ export async function createTemplateWorkbook(): Promise<ExcelJS.Workbook> {
       purchase: 110,
     },
     {
-      brand: 'PHD',
-      ad_type: 'Traffic',
-      format: 'Static',
-      ad_name: 'PHD 1234_Brand_FlashSale_Banner',
-      creative_link: 'https://drive.google.com/file/d/1exampleStaticImageFile',
+      brand: 'Brand A',
+      ad_type: 'Brand Consideration',
+      format: 'Video',
+      ad_name: 'PHD Brand A_...._...._',
+      creative_link: 'https://www.tiktok.com/@brand/video/730000000002',
       spend: 2500000,
       impression: 140000,
       clicks: 2800,
@@ -91,34 +91,6 @@ export async function createTemplateWorkbook(): Promise<ExcelJS.Workbook> {
       views_15s: 0,
       gmv: '',
       purchase: '',
-    },
-    {
-      brand: 'PHD',
-      ad_type: 'CPAS Sales',
-      format: 'Carousel',
-      ad_name: 'PHD 1234_Brand_Catalog_Product3',
-      creative_link: 'https://www.tiktok.com/@brand/video/730000000002',
-      spend: 7200000,
-      impression: 380000,
-      clicks: 5200,
-      views_6s: 60000,
-      views_15s: 26000,
-      gmv: 25500000,
-      purchase: 160,
-    },
-    {
-      brand: 'Somethinc',
-      ad_type: 'CPAS Sales',
-      format: 'Video',
-      ad_name: 'PHD 1234_Brand_Serum_ReviewUGC',
-      creative_link: 'https://www.tiktok.com/@brand/video/730000000003',
-      spend: 6000000,
-      impression: 310000,
-      clicks: 4100,
-      views_6s: 52000,
-      views_15s: 22000,
-      gmv: 21000000,
-      purchase: 135,
     },
   ];
 
@@ -171,12 +143,12 @@ export async function createTemplateWorkbook(): Promise<ExcelJS.Workbook> {
     {
       field: 'Brand *',
       required: 'YES',
-      notes: 'Brand name (e.g., PHD, Somethinc, Brand X).',
+      notes: 'Brand name',
     },
     {
       field: 'Ad Type *',
       required: 'YES',
-      notes: 'CPAS Sales, Traffic, Video Views, Reach, Engagement, etc.',
+      notes: 'CPAS Sales, Traffic, Video Views, Reach, Brand Consideration, etc.',
     },
     {
       field: 'Format',
@@ -186,17 +158,17 @@ export async function createTemplateWorkbook(): Promise<ExcelJS.Workbook> {
     {
       field: 'Ad Name *',
       required: 'YES',
-      notes: 'Ad creative title or headline. Format example: "PHD 1234_Brand_..."',
+      notes: 'Ad creative taxonomy',
     },
     {
-      field: 'Creative Link',
-      required: 'Optional',
+      field: 'Creative Link *',
+      required: 'YES',
       notes: 'TikTok video link, Instagram Reel/post, or Google Drive URL.',
     },
     {
       field: 'Spend (IDR) *',
       required: 'YES',
-      notes: 'Gross ad spend in IDR (numbers only, e.g. 5000000).',
+      notes: 'Ad spend in IDR (numbers only, e.g. 5000000).',
     },
     {
       field: 'Impressions',
@@ -211,22 +183,22 @@ export async function createTemplateWorkbook(): Promise<ExcelJS.Workbook> {
     {
       field: '6s Views (Hook)',
       required: 'Optional',
-      notes: '6-second video views (used to calculate 6s VTR hook rate).',
+      notes: '6-second video views (number only).',
     },
     {
       field: '15s Views (Hold)',
       required: 'Optional',
-      notes: '15-second video views (used to calculate Hold Ratio).',
+      notes: '15-second video views (number only).',
     },
     {
       field: 'GMV (IDR)',
       required: 'Optional',
-      notes: 'Gross merchandise value for CPAS e-commerce campaigns.',
+      notes: 'GMV in IDR (numbers only)',
     },
     {
       field: 'Purchases (Orders)',
       required: 'Optional',
-      notes: 'Total confirmed e-commerce conversions/purchases.',
+      notes: 'Number of purchase',
     },
   ];
 
