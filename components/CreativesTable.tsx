@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Play, Sparkles, Edit2, Trash2, Loader2 } from 'lucide-react';
+import { Sparkles, Edit2, Trash2, Loader2 } from 'lucide-react';
 import { CreativeRecord } from '@/lib/google-sheets';
 import { formatIDR, formatPct, formatROAS, formatNum } from '@/lib/formatters';
+import CreativePreviewThumbButton from '@/components/CreativePreviewThumbButton';
 
 interface CreativesTableProps {
   creatives: CreativeRecord[];
@@ -43,7 +44,7 @@ export default function CreativesTable({
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-              <th className="py-2 px-3 w-12 text-center whitespace-nowrap">Video</th>
+              <th className="py-2 px-3 w-[70px] text-center whitespace-nowrap">Video</th>
               <th className="py-2 px-3 min-w-[200px] whitespace-nowrap">Creative & Brand</th>
               <th className="py-2 px-3 text-right whitespace-nowrap w-[130px]">Spend</th>
               <th className="py-2 px-3 text-right whitespace-nowrap w-[150px]">CPM & CTR</th>
@@ -69,15 +70,12 @@ export default function CreativesTable({
                 >
                   {/* Thumbnail / Play Preview */}
                   <td className="py-2 px-3 text-center whitespace-nowrap">
-                    <button
-                      onClick={() => onOpenVideo(c)}
-                      className="w-[38px] h-[48px] rounded bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 relative inline-flex items-center justify-center overflow-hidden transition-all group"
-                      title="Play / Inspect Creative"
-                    >
-                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/10 flex items-center justify-center transition-colors">
-                        <Play className="w-3.5 h-3.5 text-white fill-white" />
-                      </div>
-                    </button>
+                    <div className="flex items-center justify-center">
+                      <CreativePreviewThumbButton
+                        creative={c}
+                        onOpen={() => onOpenVideo(c)}
+                      />
+                    </div>
                   </td>
 
                   {/* Creative Name, Brand, Format, Date */}
