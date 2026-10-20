@@ -400,7 +400,7 @@ export async function testGeminiApiKey(apiKey: string): Promise<{ success: boole
       // try next
     }
   }
-  return { success: false, error: 'Could not connect to Gemini API with this key.' };
+  return { success: false, error: 'Could not connect with this API key. Please verify and try again.' };
 }
 
 export async function analyzeCreativeWithGemini(
@@ -409,7 +409,7 @@ export async function analyzeCreativeWithGemini(
 ): Promise<GeminiAnalysisResult> {
   const cleanKey = (userApiKey || '').trim();
   if (!cleanKey) {
-    throw new Error('Gemini API key is required. Please set your Gemini API key in the dashboard.');
+    throw new Error('API key is required. Please set your API key in the dashboard.');
   }
 
   // 1. Resolve media stream (direct MP4 via TikWM or verified images)
@@ -471,5 +471,5 @@ export async function analyzeCreativeWithGemini(
     }
   }
 
-  throw new Error('All Gemini models timed out or rejected the request. Please verify your API key and try again.');
+  throw new Error('All AI models timed out or rejected the request. Please verify your API key and try again.');
 }

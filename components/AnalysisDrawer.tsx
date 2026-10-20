@@ -70,12 +70,21 @@ export default function AnalysisDrawer({
         );
 
         elements.push(
-          <div key={`table-${keyIdx++}`} className="overflow-x-auto my-3 border border-slate-200 dark:border-slate-800 rounded">
+          <div key={`table-${keyIdx++}`} className="overflow-x-auto my-2.5 border border-slate-200 dark:border-slate-800 rounded">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 font-semibold text-slate-700 dark:text-slate-300">
                   {headerCells.map((hc, idx) => (
-                    <th key={idx} className="py-2 px-3 text-[11px] uppercase tracking-wider">
+                    <th
+                      key={idx}
+                      className={`py-1.5 px-3 text-[11px] uppercase tracking-wider ${
+                        idx === 0
+                          ? 'whitespace-nowrap w-[130px]'
+                          : idx === 1
+                          ? 'whitespace-nowrap w-[130px]'
+                          : ''
+                      }`}
+                    >
                       {hc}
                     </th>
                   ))}
@@ -85,7 +94,16 @@ export default function AnalysisDrawer({
                 {dataRows.map((cols, rIdx) => (
                   <tr key={rIdx} className="hover:bg-slate-50 dark:hover:bg-slate-900/40">
                     {cols.map((col, cIdx) => (
-                      <td key={cIdx} className="py-2 px-3 text-xs leading-normal">
+                      <td
+                        key={cIdx}
+                        className={`py-1.5 px-3 text-xs leading-normal ${
+                          cIdx === 0
+                            ? 'font-medium text-slate-800 dark:text-slate-200 whitespace-nowrap'
+                            : cIdx === 1
+                            ? 'font-mono font-semibold text-slate-900 dark:text-white whitespace-nowrap'
+                            : 'text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
                         <span dangerouslySetInnerHTML={{ __html: formatInline(col) }} />
                       </td>
                     ))}
@@ -219,7 +237,7 @@ export default function AnalysisDrawer({
               </span>
               {creative.model_used && (
                 <span className="text-[10px] font-mono text-slate-400">
-                  {creative.model_used}
+                  {creative.model_used.replace(/gemini-?/gi, 'AI ')}
                 </span>
               )}
             </div>
@@ -236,7 +254,7 @@ export default function AnalysisDrawer({
               onClick={() => onReanalyze(creative)}
               disabled={isAnalyzing}
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 disabled:opacity-50 transition-colors"
-              title="Rerun Gemini Multimodal Analysis"
+              title="Rerun Multimodal Analysis"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isAnalyzing ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Re-Analyze</span>
@@ -292,7 +310,7 @@ export default function AnalysisDrawer({
                 Watching Video & Listening to Audio Track...
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm">
-                Gemini is downloading the stream, transcribing opening dialogue (0–6s), and evaluating performance correlation.
+                AI Engine is downloading the stream, transcribing opening dialogue (0–6s), and evaluating performance correlation.
               </p>
             </div>
           ) : creative.analysis_markdown ? (
@@ -309,7 +327,7 @@ export default function AnalysisDrawer({
                 className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Run Gemini Analysis</span>
+                <span>Run AI Analysis</span>
               </button>
             </div>
           )}

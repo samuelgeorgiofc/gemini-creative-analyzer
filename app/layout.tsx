@@ -14,7 +14,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Gemini Creative Analyzer - Multimodal E-Commerce & Media Insights',
+  title: 'Creative Analyzer Engine - Multimodal Performance & Media Insights',
   description: 'AI-powered multimodal video and creative performance analyzer with CPAS sales & conversion intelligence.',
 };
 

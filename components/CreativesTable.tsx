@@ -43,14 +43,14 @@ export default function CreativesTable({
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-              <th className="py-2.5 px-3 w-12 text-center">Video</th>
-              <th className="py-2.5 px-3 min-w-[220px]">Creative & Brand</th>
-              <th className="py-2.5 px-3 text-right">Spend</th>
-              <th className="py-2.5 px-3 text-right">CPM & CTR</th>
-              <th className="py-2.5 px-3 text-right">6s & 15s VTR</th>
-              <th className="py-2.5 px-3 text-right">CPAS Sales</th>
-              <th className="py-2.5 px-3 text-center">One-Slider AI</th>
-              <th className="py-2.5 px-3 text-center w-20">Actions</th>
+              <th className="py-2 px-3 w-12 text-center whitespace-nowrap">Video</th>
+              <th className="py-2 px-3 min-w-[200px] whitespace-nowrap">Creative & Brand</th>
+              <th className="py-2 px-3 text-right whitespace-nowrap w-[130px]">Spend</th>
+              <th className="py-2 px-3 text-right whitespace-nowrap w-[150px]">CPM & CTR</th>
+              <th className="py-2 px-3 text-right whitespace-nowrap w-[150px]">6s & 15s VTR</th>
+              <th className="py-2 px-3 text-right whitespace-nowrap w-[170px]">CPAS Sales</th>
+              <th className="py-2 px-3 text-center whitespace-nowrap w-[110px]">One-Slider AI</th>
+              <th className="py-2 px-3 text-center w-20 whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80 text-slate-700 dark:text-slate-300">
@@ -68,10 +68,10 @@ export default function CreativesTable({
                   className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
                 >
                   {/* Thumbnail / Play Preview */}
-                  <td className="py-2.5 px-3 text-center">
+                  <td className="py-2 px-3 text-center whitespace-nowrap">
                     <button
                       onClick={() => onOpenVideo(c)}
-                      className="w-[44px] h-[58px] rounded bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 relative flex items-center justify-center overflow-hidden transition-all group"
+                      className="w-[38px] h-[48px] rounded bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 relative inline-flex items-center justify-center overflow-hidden transition-all group"
                       title="Play / Inspect Creative"
                     >
                       <div className="absolute inset-0 bg-black/40 group-hover:bg-black/10 flex items-center justify-center transition-colors">
@@ -81,55 +81,58 @@ export default function CreativesTable({
                   </td>
 
                   {/* Creative Name, Brand, Format, Date */}
-                  <td className="py-2.5 px-3">
-                    <div className="font-semibold text-slate-900 dark:text-white text-xs line-clamp-1">
+                  <td className="py-2 px-3">
+                    <div className="font-semibold text-slate-900 dark:text-white text-xs line-clamp-1 max-w-[260px]" title={c.ad_name}>
                       {c.ad_name}
                     </div>
-                    <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[11px]">
+                    <div className="flex items-center gap-1.5 mt-0.5 text-[11px] whitespace-nowrap">
                       <span className="font-medium text-slate-700 dark:text-slate-300">{c.brand}</span>
                       <span className="text-slate-400 dark:text-slate-600">•</span>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                         {c.ad_type}
                       </span>
                       <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/40">
                         {c.format}
                       </span>
-                    </div>
-                    <div className="text-[10px] text-slate-400 mt-1 font-mono">
-                      {c.date_label || 'Current Period'}
+                      <span className="text-slate-400 dark:text-slate-600">•</span>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {c.date_label || 'Current Period'}
+                      </span>
                     </div>
                   </td>
 
                   {/* Spend */}
-                  <td className="py-2.5 px-3 text-right font-mono">
-                    <div className="font-semibold text-slate-900 dark:text-white">{formatIDR(c.spend)}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                  <td className="py-2 px-3 text-right font-mono whitespace-nowrap">
+                    <div className="font-semibold text-slate-900 dark:text-white leading-tight">{formatIDR(c.spend)}</div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
                       {formatNum(c.impression)} imps
                     </div>
                   </td>
 
                   {/* CPM & CTR */}
-                  <td className="py-2.5 px-3 text-right font-mono">
-                    <div className="text-slate-900 dark:text-slate-200 font-medium">{formatIDR(c.cpm)}</div>
-                    <div className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold mt-0.5">
-                      {formatPct(c.ctr)} CTR
+                  <td className="py-2 px-3 text-right font-mono whitespace-nowrap">
+                    <div className="leading-tight">
+                      <span className="text-indigo-600 dark:text-indigo-400 font-semibold text-xs">{formatPct(c.ctr)}</span>
+                      <span className="text-[10px] text-slate-400 font-normal ml-1">CTR</span>
                     </div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                      {formatNum(c.clicks)} clicks
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
+                      <span>CPM {formatIDR(c.cpm)}</span>
+                      <span className="text-slate-400 ml-1">({formatNum(c.clicks)} clk)</span>
                     </div>
                   </td>
 
                   {/* 6s & 15s VTR */}
-                  <td className="py-2.5 px-3 text-right font-mono">
+                  <td className="py-2 px-3 text-right font-mono whitespace-nowrap">
                     {c.format === 'Video' || c.views_6s > 0 ? (
                       <>
-                        <div className="text-slate-900 dark:text-white font-medium">
-                          {formatPct(c.vtr_6s)} <span className="text-[10px] text-slate-400">6s</span>
+                        <div className="text-slate-900 dark:text-white font-medium leading-tight">
+                          <span>{formatPct(c.vtr_6s)}</span>
+                          <span className="text-[10px] text-slate-400 font-normal ml-0.5">6s</span>
+                          <span className="text-slate-400 mx-1">•</span>
+                          <span>{formatPct(c.vtr_15s)}</span>
+                          <span className="text-[10px] text-slate-400 font-normal ml-0.5">15s</span>
                         </div>
-                        <div className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
-                          {formatPct(c.vtr_15s)} <span className="text-[10px] text-slate-400">15s</span>
-                        </div>
-                        <div className="text-[10px] text-slate-400">
+                        <div className="text-[10px] text-slate-400 mt-0.5 leading-tight">
                           Hold: {formatPct(c.hold_ratio)}
                         </div>
                       </>
@@ -139,17 +142,17 @@ export default function CreativesTable({
                   </td>
 
                   {/* CPAS Sales Metrics */}
-                  <td className="py-2.5 px-3 text-right font-mono">
+                  <td className="py-2 px-3 text-right font-mono whitespace-nowrap">
                     {isCpas ? (
                       <>
-                        <div className="font-semibold text-emerald-600 dark:text-emerald-400">
-                          {formatROAS(c.roas || 0)} ROAS
+                        <div className="font-semibold text-emerald-600 dark:text-emerald-400 leading-tight">
+                          <span>{formatROAS(c.roas || 0)} ROAS</span>
+                          <span className="text-[10px] font-normal text-slate-400 ml-1">({formatNum(c.purchase || 0)} ord)</span>
                         </div>
-                        <div className="text-[10px] text-slate-600 dark:text-slate-400 mt-0.5">
-                          GMV: {formatIDR(c.gmv || 0)}
-                        </div>
-                        <div className="text-[10px] text-slate-400">
-                          {formatNum(c.purchase || 0)} ord | CPP {formatIDR(c.cpp || 0)}
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
+                          <span>GMV {formatIDR(c.gmv || 0)}</span>
+                          <span className="text-slate-400 mx-1">•</span>
+                          <span>CPP {formatIDR(c.cpp || 0)}</span>
                         </div>
                       </>
                     ) : (
@@ -157,8 +160,8 @@ export default function CreativesTable({
                     )}
                   </td>
 
-                  {/* Gemini Analysis Button / Status */}
-                  <td className="py-2.5 px-3 text-center">
+                  {/* AI Analysis Button / Status */}
+                  <td className="py-2 px-3 text-center whitespace-nowrap">
                     {isAnalyzingThis ? (
                       <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
                         <Loader2 className="w-3 h-3 animate-spin" />
@@ -184,7 +187,7 @@ export default function CreativesTable({
                   </td>
 
                   {/* Actions: Edit & Delete */}
-                  <td className="py-2.5 px-3 text-center">
+                  <td className="py-2 px-3 text-center whitespace-nowrap">
                     <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={() => onEditCreative(c)}

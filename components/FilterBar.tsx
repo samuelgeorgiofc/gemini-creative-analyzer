@@ -63,7 +63,7 @@ export default function FilterBar({
       { header: 'ROAS', key: 'roas', width: 12 },
       { header: 'Cost Per Purchase (CPP)', key: 'cpp', width: 16 },
       { header: 'Creative Link', key: 'creative_link', width: 40 },
-      { header: 'Gemini Analysis Status', key: 'status', width: 20 },
+      { header: 'Analysis Status', key: 'status', width: 20 },
     ];
 
     ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };

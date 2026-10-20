@@ -26,11 +26,8 @@ export default function TopNav({
       <div>
         <div className="flex items-center gap-2">
           <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-            Gemini Creative Analyzer
+            Creative Analyzer Engine
           </h1>
-          <span className="px-1.5 py-0.5 text-[10px] font-mono font-semibold rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-            Engine
-          </span>
         </div>
         <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">
           Single-creative performance tracking, video multimodal evaluation, and CPAS sales intelligence
@@ -52,7 +49,7 @@ export default function TopNav({
           <ExternalLink className="w-3 h-3 text-slate-400" />
         </a>
 
-        {/* Gemini API Key Status Pill */}
+        {/* API Key Status Pill */}
         <button
           onClick={onOpenApiKeyModal}
           className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium transition-colors ${
@@ -60,10 +57,10 @@ export default function TopNav({
               ? 'bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400'
               : 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800/80 text-amber-700 dark:text-amber-300'
           }`}
-          title="Configure Gemini API Key"
+          title="Configure API Key"
         >
           <KeyRound className="w-3.5 h-3.5" />
-          <span>{hasKey ? 'Gemini Key Injected' : 'Inject Gemini Key'}</span>
+          <span>{hasKey ? 'API Key Active' : 'Inject API Key'}</span>
         </button>
 
         {/* Theme Toggle */}

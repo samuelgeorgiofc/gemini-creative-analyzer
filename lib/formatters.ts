@@ -7,7 +7,7 @@ export const parseNum = (val: any): number => {
 
 export const formatIDR = (num: number): string => {
   const val = Math.round(Number(num) || 0);
-  return 'Rp ' + val.toLocaleString('id-ID');
+  return 'Rp\u00A0' + val.toLocaleString('id-ID');
 };
 
 export const formatNum = (num: number): string => {

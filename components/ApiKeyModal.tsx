@@ -44,7 +44,7 @@ export default function ApiKeyModal({
       if (data.success) {
         setTestResult({
           success: true,
-          message: `Connected successfully using model: ${data.model || 'gemini-3.8-flash'}!`,
+          message: 'Connected successfully to AI Engine!',
         });
       } else {
         setTestResult({
@@ -66,8 +66,10 @@ export default function ApiKeyModal({
     const trimmed = inputKey.trim();
     if (typeof window !== 'undefined') {
       if (trimmed) {
+        window.localStorage.setItem('creative_ai_api_key', trimmed);
         window.localStorage.setItem('gemini_api_key', trimmed);
       } else {
+        window.localStorage.removeItem('creative_ai_api_key');
         window.localStorage.removeItem('gemini_api_key');
       }
     }
@@ -77,6 +79,7 @@ export default function ApiKeyModal({
 
   const handleRemove = () => {
     if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('creative_ai_api_key');
       window.localStorage.removeItem('gemini_api_key');
     }
     setInputKey('');
@@ -98,7 +101,7 @@ export default function ApiKeyModal({
 
         {/* Modal Header */}
         <div className="mb-4">
-          <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Gemini API Key Setup</h2>
+          <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">AI API Key Setup</h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Your key is stored securely in your browser and used only to analyze creative videos.
           </p>
@@ -107,21 +110,21 @@ export default function ApiKeyModal({
         {/* Info Callout */}
         <div className="p-3 mb-4 rounded bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
           <p className="font-semibold text-slate-800 dark:text-slate-200 mb-0.5">No Built-In API Key</p>
-          This project does not include any pre-configured Gemini keys.
+          This project does not include any pre-configured API keys.
           <a
             href="https://aistudio.google.com/app/apikey"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 ml-1 text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
           >
-            Get a free key at Google AI Studio <ExternalLink className="w-3 h-3" />
+            Get a free key here <ExternalLink className="w-3 h-3" />
           </a>
         </div>
 
         {/* Input Field */}
         <div className="space-y-1.5 mb-4">
           <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-            Google Gemini API Key
+            AI API Key
           </label>
           <input
             type="password"

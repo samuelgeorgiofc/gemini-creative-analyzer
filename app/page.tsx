@@ -51,7 +51,10 @@ export default function DashboardPage() {
   // Load API key from localStorage on mount
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem('gemini_api_key') || '';
+      const saved =
+        window.localStorage.getItem('creative_ai_api_key') ||
+        window.localStorage.getItem('gemini_api_key') ||
+        '';
       if (saved) setApiKey(saved);
     } catch {
       // ignore
@@ -216,7 +219,7 @@ export default function DashboardPage() {
               <KeyRound className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
               <div>
                 <span className="font-semibold text-amber-900 dark:text-amber-200 mr-1.5">
-                  Gemini API Key Required:
+                  AI API Key Required:
                 </span>
                 <span>
                   To watch video frames, listen to spoken audio dialogue, and generate One-Slider reports, please inject your key.
