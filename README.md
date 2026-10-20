@@ -84,3 +84,4 @@ Deploy directly via Vercel CLI or import the GitHub repository in the Vercel das
   - `SPREADSHEET_ID`
   - `GOOGLE_CLIENT_EMAIL`
   - `GOOGLE_PRIVATE_KEY`
+

@@ -86,46 +86,41 @@ export default function ApiKeyModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-[#0f172a] border border-slate-800 rounded-xl shadow-2xl p-6 text-slate-100 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+      <div className="w-full max-w-lg bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xl p-5 text-slate-900 dark:text-slate-100 relative">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          className="absolute top-4 right-4 p-1 rounded-md text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         {/* Modal Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-            <KeyRound className="w-6 h-6" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">Gemini API Key Setup</h2>
-            <p className="text-xs text-slate-400">
-              Provide your personal Google Gemini API key to run multimodal video analysis.
-            </p>
-          </div>
+        <div className="mb-4">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">Gemini API Key Setup</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Your key is stored securely in your browser and used only to analyze creative videos.
+          </p>
         </div>
 
         {/* Info Callout */}
-        <div className="p-3.5 mb-5 rounded-lg bg-indigo-950/40 border border-indigo-900/60 text-xs text-indigo-200/90 leading-relaxed">
-          <p className="font-semibold text-indigo-300 mb-1">Zero Built-In Key Policy</p>
-          This project does not include any pre-configured Gemini keys. Your key is securely stored in your local browser storage and only used to analyze your submitted creatives.
+        <div className="p-3 mb-4 rounded bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+          <p className="font-semibold text-slate-800 dark:text-slate-200 mb-0.5">No Built-In API Key</p>
+          This project does not include any pre-configured Gemini keys.
           <a
             href="https://aistudio.google.com/app/apikey"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 ml-1 text-indigo-400 hover:text-indigo-300 underline font-medium"
+            className="inline-flex items-center gap-1 ml-1 text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
           >
-            Get a free Gemini API key here <ExternalLink className="w-3 h-3" />
+            Get a free key at Google AI Studio <ExternalLink className="w-3 h-3" />
           </a>
         </div>
 
         {/* Input Field */}
-        <div className="space-y-2 mb-4">
-          <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+        <div className="space-y-1.5 mb-4">
+          <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
             Google Gemini API Key
           </label>
           <input
@@ -136,38 +131,38 @@ export default function ApiKeyModal({
               setTestResult(null);
             }}
             placeholder="AIzaSy... or AQ.Ab8..."
-            className="w-full px-3.5 py-2.5 rounded-lg bg-slate-900/90 border border-slate-700 text-sm font-mono text-white placeholder-slate-500 focus:outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            className="w-full px-3 py-2 rounded bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:border-indigo-500"
           />
         </div>
 
         {/* Test Result Message */}
         {testResult && (
           <div
-            className={`p-3 rounded-lg text-xs flex items-start gap-2 mb-4 ${
+            className={`p-2.5 rounded text-xs flex items-start gap-2 mb-4 ${
               testResult.success
-                ? 'bg-emerald-950/40 border border-emerald-800/60 text-emerald-300'
-                : 'bg-rose-950/40 border border-rose-800/60 text-rose-300'
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300'
+                : 'bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300'
             }`}
           >
             {testResult.success ? (
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
             ) : (
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
             )}
             <span>{testResult.message}</span>
           </div>
         )}
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+        <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800">
           <div>
             {currentKey && (
               <button
                 type="button"
                 onClick={handleRemove}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 transition-colors"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
               >
-                <Trash2 className="w-3.5 h-3.5" /> Remove Key
+                <Trash2 className="w-3.5 h-3.5" /> Remove
               </button>
             )}
           </div>
@@ -176,7 +171,7 @@ export default function ApiKeyModal({
               type="button"
               onClick={handleTestKey}
               disabled={testing || !inputKey.trim()}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 disabled:opacity-50 transition-colors"
             >
               {testing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
               Test Key
@@ -184,7 +179,7 @@ export default function ApiKeyModal({
             <button
               type="button"
               onClick={handleSave}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-500/20 transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
             >
               Save Key
             </button>

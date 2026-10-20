@@ -108,3 +108,4 @@ export function getAvailableMonths(monthsBack = 12): { value: string; label: str
   }
   return months;
 }
+

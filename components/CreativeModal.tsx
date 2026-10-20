@@ -1,22 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  X,
-  Calendar,
-  Sparkles,
-  Link as LinkIcon,
-  ShoppingBag,
-  Eye,
-  MousePointer,
-  DollarSign,
-  TrendingUp,
-  Video,
-  FileImage,
-  Layers,
-  Loader2,
-  Check,
-} from 'lucide-react';
+import { X, Calendar, Check, Loader2 } from 'lucide-react';
 import { CreativeRecord } from '@/lib/google-sheets';
 import {
   buildTueSunWeeksForMonth,
@@ -24,45 +9,24 @@ import {
   TueSunWeekOption,
   toYMD,
 } from '@/lib/date-utils';
-import { formatIDR, formatPct, formatROAS, formatNum } from '@/lib/formatters';
+import { formatIDR, formatPct, formatROAS } from '@/lib/formatters';
 
 interface CreativeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSaved: (creative: CreativeRecord) => void;
   creativeToEdit?: CreativeRecord | null;
+  existingBrands?: string[];
+  existingAdTypes?: string[];
 }
-
-const COMMON_BRANDS = [
-  'Somethinc',
-  'Skintific',
-  'Wardah',
-  'Scarlett',
-  'Avoskin',
-  'Originote',
-  'Make Over',
-  'Emina',
-  'Kahf',
-  'Garnier',
-  'Maybelline',
-  'Madame Gie',
-];
-
-const AD_TYPES = [
-  'CPAS Sales',
-  'Video Views',
-  'Traffic',
-  'Conversions (Website)',
-  'Engagement',
-  'Reach / Awareness',
-  'Lead Generation',
-];
 
 export default function CreativeModal({
   isOpen,
   onClose,
   onSaved,
   creativeToEdit,
+  existingBrands = [],
+  existingAdTypes = [],
 }: CreativeModalProps) {
   // Date modes: 'weekly_month' (Tue-Sun weeks), 'custom_range', 'single_date'
   const [dateType, setDateType] = useState<'weekly_month' | 'custom_range' | 'single_date'>('weekly_month');
@@ -77,11 +41,9 @@ export default function CreativeModal({
   const [singleDate, setSingleDate] = useState<string>('');
 
   // Creative data fields
-  const [brand, setBrand] = useState<string>('Somethinc');
-  const [customBrand, setCustomBrand] = useState<string>('');
-  const [isOtherBrand, setIsOtherBrand] = useState<boolean>(false);
-
-  const [adType, setAdType] = useState<string>('CPAS Sales');
+  const [brand, setBrand] = useState<string>('');
+  const [adTypeCategory, setAdTypeCategory] = useState<'CPAS Sales' | 'Others'>('CPAS Sales');
+  const [otherAdTypeValue, setOtherAdTypeValue] = useState<string>('');
   const [format, setFormat] = useState<'Video' | 'Static' | 'Carousel'>('Video');
   const [adName, setAdName] = useState<string>('');
   const [creativeLink, setCreativeLink] = useState<string>('');
@@ -100,7 +62,12 @@ export default function CreativeModal({
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Populate when editing
+  // Filter other ad types (excluding CPAS Sales) for suggestion relook
+  const otherExistingTypes = useMemo(() => {
+    return existingAdTypes.filter((t) => t && t.toLowerCase() !== 'cpas sales');
+  }, [existingAdTypes]);
+
+  // Populate when editing or opening
   useEffect(() => {
     if (creativeToEdit) {
       setDateType(creativeToEdit.date_type || 'weekly_month');
@@ -108,14 +75,15 @@ export default function CreativeModal({
         setCustomStart(creativeToEdit.start_date);
         setCustomEnd(creativeToEdit.end_date);
       }
-      if (COMMON_BRANDS.includes(creativeToEdit.brand)) {
-        setBrand(creativeToEdit.brand);
-        setIsOtherBrand(false);
+      setBrand(creativeToEdit.brand || '');
+      const isCpas = creativeToEdit.ad_type?.toLowerCase().includes('cpas');
+      if (isCpas) {
+        setAdTypeCategory('CPAS Sales');
+        setOtherAdTypeValue('');
       } else {
-        setIsOtherBrand(true);
-        setCustomBrand(creativeToEdit.brand);
+        setAdTypeCategory('Others');
+        setOtherAdTypeValue(creativeToEdit.ad_type || '');
       }
-      setAdType(creativeToEdit.ad_type || 'CPAS Sales');
       setFormat(creativeToEdit.format || 'Video');
       setAdName(creativeToEdit.ad_name || '');
       setCreativeLink(creativeToEdit.creative_link || '');
@@ -127,13 +95,11 @@ export default function CreativeModal({
       setGmvStr(creativeToEdit.gmv ? String(creativeToEdit.gmv) : '');
       setPurchaseStr(creativeToEdit.purchase ? String(creativeToEdit.purchase) : '');
     } else {
-      // Defaults for new creative
       setDateType('weekly_month');
       setSelectedWeekKey(weekOptions[1]?.key || 'ALL_MONTH');
-      setBrand('Somethinc');
-      setIsOtherBrand(false);
-      setCustomBrand('');
-      setAdType('CPAS Sales');
+      setBrand(existingBrands[0] || '');
+      setAdTypeCategory('CPAS Sales');
+      setOtherAdTypeValue('');
       setFormat('Video');
       setAdName('');
       setCreativeLink('');
@@ -146,7 +112,7 @@ export default function CreativeModal({
       setPurchaseStr('');
     }
     setErrorMessage('');
-  }, [creativeToEdit, isOpen, weekOptions]);
+  }, [creativeToEdit, isOpen, weekOptions, existingBrands]);
 
   if (!isOpen) return null;
 
@@ -165,13 +131,13 @@ export default function CreativeModal({
   const vtr15s = impression > 0 ? views15s / impression : 0;
   const holdRatio = views6s > 0 ? views15s / views6s : 0;
 
-  const isCpas = adType === 'CPAS Sales';
+  const isCpas = adTypeCategory === 'CPAS Sales';
+  const finalAdType = isCpas ? 'CPAS Sales' : (otherAdTypeValue.trim() || 'Other');
   const roas = spend > 0 ? gmv / spend : 0;
   const cpp = purchase > 0 ? spend / purchase : 0;
   const cvr = clicks > 0 ? purchase / clicks : 0;
   const aov = purchase > 0 ? gmv / purchase : 0;
 
-  // Compute final date label
   let dateLabel = 'Current Period';
   let startDate = '';
   let endDate = '';
@@ -191,16 +157,22 @@ export default function CreativeModal({
     endDate = singleDate;
   }
 
-  const finalBrand = isOtherBrand ? customBrand.trim() || 'Brand' : brand;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!brand.trim()) {
+      setErrorMessage('Please enter a Brand name.');
+      return;
+    }
     if (!adName.trim()) {
-      setErrorMessage('Please enter an Ad Name (Creative Name).');
+      setErrorMessage('Please enter an Ad Name.');
       return;
     }
     if (!spendStr || spend <= 0) {
       setErrorMessage('Please enter a valid spend amount in IDR.');
+      return;
+    }
+    if (!isCpas && !otherAdTypeValue.trim()) {
+      setErrorMessage('Please enter the custom ad type for Others.');
       return;
     }
 
@@ -214,8 +186,8 @@ export default function CreativeModal({
         date_type: dateType,
         start_date: startDate,
         end_date: endDate,
-        brand: finalBrand,
-        ad_type: adType,
+        brand: brand.trim(),
+        ad_type: finalAdType,
         format,
         ad_name: adName.trim(),
         creative_link: creativeLink.trim(),
@@ -250,53 +222,48 @@ export default function CreativeModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl bg-[#0f172a] border border-slate-800 rounded-xl shadow-2xl p-6 text-slate-100 my-8 relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in duration-150">
+      <div className="w-full max-w-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xl p-6 text-slate-900 dark:text-slate-100 my-8 relative max-h-[92vh] overflow-y-auto">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          className="absolute top-4 right-4 p-1.5 rounded-md text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-            <Sparkles className="w-6 h-6" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">
-              {creativeToEdit ? 'Edit Creative Performance' : 'Add New Creative Performance'}
-            </h2>
-            <p className="text-xs text-slate-400">
-              Input single creative delivery metrics. Will be saved directly into Google Sheets.
-            </p>
-          </div>
+        <div className="mb-5">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
+            {creativeToEdit ? 'Edit Creative' : 'Add Creative'}
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Input performance data. Synced directly with your Google Sheet.
+          </p>
         </div>
 
         {errorMessage && (
-          <div className="mb-4 p-3 rounded-lg bg-rose-950/40 border border-rose-800/60 text-xs text-rose-300">
+          <div className="mb-4 p-3 rounded-md bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-xs text-rose-700 dark:text-rose-300">
             {errorMessage}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Section 1: Period Selection */}
-          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-3">
+          <div className="p-3.5 rounded-md bg-slate-50 dark:bg-[#090d16] border border-slate-200 dark:border-slate-800 space-y-2.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-indigo-400" />
-                Performance Period / Date Format
+              <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                Performance Period
               </label>
 
-              {/* Mode Selector */}
-              <div className="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px]">
+              <div className="flex items-center bg-white dark:bg-slate-900 p-0.5 rounded border border-slate-200 dark:border-slate-800 text-[11px]">
                 <button
                   type="button"
                   onClick={() => setDateType('weekly_month')}
-                  className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                    dateType === 'weekly_month' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
+                  className={`px-2 py-0.5 rounded font-medium transition-colors ${
+                    dateType === 'weekly_month'
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   Tue–Sun Week
@@ -304,8 +271,10 @@ export default function CreativeModal({
                 <button
                   type="button"
                   onClick={() => setDateType('custom_range')}
-                  className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                    dateType === 'custom_range' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
+                  className={`px-2 py-0.5 rounded font-medium transition-colors ${
+                    dateType === 'custom_range'
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   Custom Range
@@ -313,8 +282,10 @@ export default function CreativeModal({
                 <button
                   type="button"
                   onClick={() => setDateType('single_date')}
-                  className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                    dateType === 'single_date' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
+                  className={`px-2 py-0.5 rounded font-medium transition-colors ${
+                    dateType === 'single_date'
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   Single Date
@@ -322,15 +293,14 @@ export default function CreativeModal({
               </div>
             </div>
 
-            {/* Tue-Sun Week Picker */}
             {dateType === 'weekly_month' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                 <div>
-                  <label className="text-[11px] text-slate-400 mb-1 block">Month</label>
+                  <label className="text-[11px] text-slate-500 dark:text-slate-400 mb-1 block">Month</label>
                   <select
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-hidden focus:border-indigo-500"
+                    className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
                   >
                     {availableMonths.map((m) => (
                       <option key={m.value} value={m.value}>
@@ -340,11 +310,11 @@ export default function CreativeModal({
                   </select>
                 </div>
                 <div>
-                  <label className="text-[11px] text-slate-400 mb-1 block">Week Range (Tue–Sun)</label>
+                  <label className="text-[11px] text-slate-500 dark:text-slate-400 mb-1 block">Week Range</label>
                   <select
                     value={selectedWeekKey}
                     onChange={(e) => setSelectedWeekKey(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-hidden focus:border-indigo-500"
+                    className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
                   >
                     {weekOptions.map((w) => (
                       <option key={w.key} value={w.key}>
@@ -356,256 +326,291 @@ export default function CreativeModal({
               </div>
             )}
 
-            {/* Custom Range Picker */}
             {dateType === 'custom_range' && (
-              <div className="grid grid-cols-2 gap-3 pt-1">
+              <div className="grid grid-cols-2 gap-2.5 pt-1">
                 <div>
-                  <label className="text-[11px] text-slate-400 mb-1 block">Start Date</label>
+                  <label className="text-[11px] text-slate-500 dark:text-slate-400 mb-1 block">Start Date</label>
                   <input
                     type="date"
                     value={customStart}
                     onChange={(e) => setCustomStart(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-hidden focus:border-indigo-500"
+                    className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] text-slate-400 mb-1 block">End Date</label>
+                  <label className="text-[11px] text-slate-500 dark:text-slate-400 mb-1 block">End Date</label>
                   <input
                     type="date"
                     value={customEnd}
                     onChange={(e) => setCustomEnd(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-hidden focus:border-indigo-500"
+                    className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
                   />
                 </div>
               </div>
             )}
 
-            {/* Single Date Picker */}
             {dateType === 'single_date' && (
               <div className="pt-1">
-                <label className="text-[11px] text-slate-400 mb-1 block">Performance Date</label>
+                <label className="text-[11px] text-slate-500 dark:text-slate-400 mb-1 block">Date</label>
                 <input
                   type="date"
                   value={singleDate}
                   onChange={(e) => setSingleDate(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-hidden focus:border-indigo-500"
+                  className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
                 />
               </div>
             )}
           </div>
 
-          {/* Section 2: Creative Details */}
+          {/* Section 2: Brand, Ad Type, Format */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Brand */}
+            {/* Brand with Datalist for existing brands */}
             <div>
-              <label className="text-xs font-semibold text-slate-300 mb-1 block">Brand</label>
-              {!isOtherBrand ? (
-                <div className="space-y-1.5">
-                  <select
-                    value={brand}
-                    onChange={(e) => {
-                      if (e.target.value === '__OTHER__') {
-                        setIsOtherBrand(true);
-                      } else {
-                        setBrand(e.target.value);
-                      }
-                    }}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-hidden focus:border-indigo-500"
-                  >
-                    {COMMON_BRANDS.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
-                      </option>
-                    ))}
-                    <option value="__OTHER__">+ Add New Brand...</option>
-                  </select>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="text"
-                    value={customBrand}
-                    onChange={(e) => setCustomBrand(e.target.value)}
-                    placeholder="Enter brand name"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-hidden focus:border-indigo-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setIsOtherBrand(false)}
-                    className="px-2 py-2 text-xs text-slate-400 hover:text-white"
-                  >
-                    Cancel
-                  </button>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 block">
+                Brand <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                list="brands-datalist"
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                placeholder="e.g. Somethinc"
+                className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
+                required
+              />
+              <datalist id="brands-datalist">
+                {existingBrands.map((b) => (
+                  <option key={b} value={b} />
+                ))}
+              </datalist>
+              {existingBrands.length > 0 && !brand && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {existingBrands.slice(0, 4).map((b) => (
+                    <button
+                      key={b}
+                      type="button"
+                      onClick={() => setBrand(b)}
+                      className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    >
+                      {b}
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
 
-            {/* Ad Type */}
+            {/* Ad Type: CPAS Sales vs Others */}
             <div>
-              <label className="text-xs font-semibold text-slate-300 mb-1 block">Ad Type / Campaign Objective</label>
-              <select
-                value={adType}
-                onChange={(e) => setAdType(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-hidden focus:border-indigo-500"
-              >
-                {AD_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 block">
+                Ad Type <span className="text-rose-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-1 bg-slate-100 dark:bg-slate-900 p-0.5 rounded border border-slate-200 dark:border-slate-800 mb-1.5">
+                <button
+                  type="button"
+                  onClick={() => setAdTypeCategory('CPAS Sales')}
+                  className={`py-1 rounded text-[11px] font-semibold transition-colors ${
+                    isCpas
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  CPAS Sales
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAdTypeCategory('Others')}
+                  className={`py-1 rounded text-[11px] font-semibold transition-colors ${
+                    !isCpas
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  Others
+                </button>
+              </div>
+
+              {!isCpas && (
+                <div>
+                  <input
+                    type="text"
+                    list="adtypes-datalist"
+                    value={otherAdTypeValue}
+                    onChange={(e) => setOtherAdTypeValue(e.target.value)}
+                    placeholder="Enter ad type (e.g. Traffic, Video Views)"
+                    className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
+                    required
+                  />
+                  <datalist id="adtypes-datalist">
+                    {otherExistingTypes.map((t) => (
+                      <option key={t} value={t} />
+                    ))}
+                  </datalist>
+                  {otherExistingTypes.length > 0 && !otherAdTypeValue && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {otherExistingTypes.slice(0, 3).map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => setOtherAdTypeValue(t)}
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Format */}
+            {/* Asset Format */}
             <div>
-              <label className="text-xs font-semibold text-slate-300 mb-1 block">Asset Format</label>
-              <div className="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 block">Format</label>
+              <div className="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-900 p-0.5 rounded border border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setFormat('Video')}
-                  className={`py-1.5 px-2 rounded text-[11px] font-medium flex items-center justify-center gap-1 transition-colors ${
-                    format === 'Video' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+                  className={`py-1 rounded text-[11px] font-semibold transition-colors ${
+                    format === 'Video'
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  <Video className="w-3 h-3" /> Video
+                  Video
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormat('Static')}
-                  className={`py-1.5 px-2 rounded text-[11px] font-medium flex items-center justify-center gap-1 transition-colors ${
-                    format === 'Static' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+                  className={`py-1 rounded text-[11px] font-semibold transition-colors ${
+                    format === 'Static'
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  <FileImage className="w-3 h-3" /> Static
+                  Static
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormat('Carousel')}
-                  className={`py-1.5 px-2 rounded text-[11px] font-medium flex items-center justify-center gap-1 transition-colors ${
-                    format === 'Carousel' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+                  className={`py-1 rounded text-[11px] font-semibold transition-colors ${
+                    format === 'Carousel'
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  <Layers className="w-3 h-3" /> Carousel
+                  Carousel
                 </button>
               </div>
             </div>
           </div>
 
           {/* Ad Name & Link */}
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <div>
-              <label className="text-xs font-semibold text-slate-300 mb-1 block">
-                Ad Name / Creative Headline <span className="text-rose-400">*</span>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 block">
+                Ad Name / Creative Headline <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
                 value={adName}
                 onChange={(e) => setAdName(e.target.value)}
-                placeholder="e.g., SKN_Serum_ObjHandling_B2_UGC_V1"
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-indigo-500"
+                placeholder="e.g. SOMETHINC_Serum_ObjHandling_B2_UGC"
+                className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:border-indigo-500"
                 required
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300 mb-1 block flex items-center gap-1.5">
-                <LinkIcon className="w-3.5 h-3.5 text-indigo-400" />
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 block">
                 Creative Link (TikTok / Instagram / Google Drive URL)
               </label>
               <input
                 type="url"
                 value={creativeLink}
                 onChange={(e) => setCreativeLink(e.target.value)}
-                placeholder="https://www.tiktok.com/@somethinc/video/728192837... or https://drive.google.com/..."
-                className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs font-mono text-white placeholder-slate-500 focus:outline-hidden focus:border-indigo-500"
+                placeholder="https://www.tiktok.com/@brand/video/... or https://drive.google.com/..."
+                className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:border-indigo-500"
               />
             </div>
           </div>
 
           {/* Section 3: Performance Metrics */}
-          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-3">
-            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
-              Delivery & Engagement Metrics
+          <div className="p-3.5 rounded-md bg-slate-50 dark:bg-[#090d16] border border-slate-200 dark:border-slate-800 space-y-2.5">
+            <h3 className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+              Spend & Engagement Metrics
             </h3>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               <div>
-                <label className="text-[11px] text-slate-400 mb-1 block">
-                  Spend (IDR) <span className="text-rose-400">*</span>
+                <label className="text-[11px] text-slate-500 dark:text-slate-400 mb-1 block">
+                  Spend (IDR) <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="number"
                   value={spendStr}
                   onChange={(e) => setSpendStr(e.target.value)}
                   placeholder="e.g. 5000000"
-                  className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs font-mono text-white focus:outline-hidden focus:border-indigo-500"
+                  className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-[11px] text-slate-400 mb-1 block">Impressions</label>
+                <label className="text-[11px] text-slate-500 dark:text-slate-400 mb-1 block">Impressions</label>
                 <input
                   type="number"
                   value={impressionStr}
                   onChange={(e) => setImpressionStr(e.target.value)}
                   placeholder="e.g. 250000"
-                  className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs font-mono text-white focus:outline-hidden focus:border-indigo-500"
+                  className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] text-slate-400 mb-1 block">Clicks</label>
+                <label className="text-[11px] text-slate-500 dark:text-slate-400 mb-1 block">Clicks</label>
                 <input
                   type="number"
                   value={clicksStr}
                   onChange={(e) => setClicksStr(e.target.value)}
                   placeholder="e.g. 3500"
-                  className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs font-mono text-white focus:outline-hidden focus:border-indigo-500"
+                  className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] text-slate-400 mb-1 block">6s Views (Hook)</label>
+                <label className="text-[11px] text-slate-500 dark:text-slate-400 mb-1 block">6s Views (Hook)</label>
                 <input
                   type="number"
                   value={views6sStr}
                   onChange={(e) => setViews6sStr(e.target.value)}
                   placeholder="e.g. 45000"
-                  className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs font-mono text-white focus:outline-hidden focus:border-indigo-500"
+                  className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] text-slate-400 mb-1 block">15s Views (Hold)</label>
+                <label className="text-[11px] text-slate-500 dark:text-slate-400 mb-1 block">15s Views (Hold)</label>
                 <input
                   type="number"
                   value={views15sStr}
                   onChange={(e) => setViews15sStr(e.target.value)}
                   placeholder="e.g. 18000"
-                  className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs font-mono text-white focus:outline-hidden focus:border-indigo-500"
+                  className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
                 />
               </div>
             </div>
           </div>
 
-          {/* Section 4: Dynamic CPAS Sales Section */}
+          {/* Section 4: Dynamic CPAS Sales Data */}
           {isCpas && (
-            <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-900/50 space-y-3">
-              <div className="flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
-                  CPAS Sales & Commerce Conversion Data
-                </h3>
-              </div>
-              <p className="text-[11px] text-emerald-200/70">
-                Inputting GMV and purchases activates specialized ROAS, CPP, and conversion capability analysis in the Gemini creative engine.
-              </p>
+            <div className="p-3.5 rounded-md bg-slate-50 dark:bg-[#090d16] border border-slate-200 dark:border-slate-800 space-y-2.5">
+              <h3 className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                CPAS E-Commerce Performance
+              </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
                 <div>
-                  <label className="text-[11px] text-emerald-200 font-semibold mb-1 block">
+                  <label className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold mb-1 block">
                     Gross Merchandise Value (GMV - IDR)
                   </label>
                   <input
@@ -613,11 +618,11 @@ export default function CreativeModal({
                     value={gmvStr}
                     onChange={(e) => setGmvStr(e.target.value)}
                     placeholder="e.g. 17500000"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-emerald-800/80 text-xs font-mono text-emerald-300 focus:outline-hidden focus:border-emerald-500"
+                    className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] text-emerald-200 font-semibold mb-1 block">
+                  <label className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold mb-1 block">
                     Purchases (Total Orders)
                   </label>
                   <input
@@ -625,53 +630,53 @@ export default function CreativeModal({
                     value={purchaseStr}
                     onChange={(e) => setPurchaseStr(e.target.value)}
                     placeholder="e.g. 110"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-emerald-800/80 text-xs font-mono text-emerald-300 focus:outline-hidden focus:border-emerald-500"
+                    className="w-full px-2.5 py-1.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
                   />
                 </div>
               </div>
             </div>
           )}
 
-          {/* Section 5: Real-time Calculated Metrics Preview */}
-          <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">
+          {/* Real-time Calculated Metrics Preview */}
+          <div className="p-3 rounded-md bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1.5">
+            <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block">
               Calculated Metrics Preview
             </span>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              <div className="p-2 rounded-lg bg-slate-900 border border-slate-800/80">
+              <div className="p-1.5 rounded bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] text-slate-400 block">CPM</span>
-                <span className="font-bold text-white">{formatIDR(cpm)}</span>
+                <span className="font-mono font-medium text-slate-900 dark:text-white">{formatIDR(cpm)}</span>
               </div>
-              <div className="p-2 rounded-lg bg-slate-900 border border-slate-800/80">
+              <div className="p-1.5 rounded bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] text-slate-400 block">CTR</span>
-                <span className="font-bold text-white">{formatPct(ctr)}</span>
+                <span className="font-mono font-medium text-slate-900 dark:text-white">{formatPct(ctr)}</span>
               </div>
-              <div className="p-2 rounded-lg bg-slate-900 border border-slate-800/80">
+              <div className="p-1.5 rounded bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] text-slate-400 block">6s VTR</span>
-                <span className="font-bold text-white">{formatPct(vtr6s)}</span>
+                <span className="font-mono font-medium text-slate-900 dark:text-white">{formatPct(vtr6s)}</span>
               </div>
-              <div className="p-2 rounded-lg bg-slate-900 border border-slate-800/80">
-                <span className="text-[10px] text-slate-400 block">Hold Ratio (15s/6s)</span>
-                <span className="font-bold text-white">{formatPct(holdRatio)}</span>
+              <div className="p-1.5 rounded bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] text-slate-400 block">Hold (15s/6s)</span>
+                <span className="font-mono font-medium text-slate-900 dark:text-white">{formatPct(holdRatio)}</span>
               </div>
 
               {isCpas && (
                 <>
-                  <div className="p-2 rounded-lg bg-emerald-950/40 border border-emerald-800/60">
-                    <span className="text-[10px] text-emerald-300 block">ROAS</span>
-                    <span className="font-bold text-emerald-400">{formatROAS(roas)}</span>
+                  <div className="p-1.5 rounded bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800">
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block">ROAS</span>
+                    <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400">{formatROAS(roas)}</span>
                   </div>
-                  <div className="p-2 rounded-lg bg-emerald-950/40 border border-emerald-800/60">
-                    <span className="text-[10px] text-emerald-300 block">Cost Per Purchase (CPP)</span>
-                    <span className="font-bold text-emerald-400">{formatIDR(cpp)}</span>
+                  <div className="p-1.5 rounded bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">Cost Per Purchase</span>
+                    <span className="font-mono font-medium text-slate-900 dark:text-white">{formatIDR(cpp)}</span>
                   </div>
-                  <div className="p-2 rounded-lg bg-emerald-950/40 border border-emerald-800/60">
-                    <span className="text-[10px] text-emerald-300 block">Conversion Rate (CVR)</span>
-                    <span className="font-bold text-emerald-400">{formatPct(cvr)}</span>
+                  <div className="p-1.5 rounded bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">CVR</span>
+                    <span className="font-mono font-medium text-slate-900 dark:text-white">{formatPct(cvr)}</span>
                   </div>
-                  <div className="p-2 rounded-lg bg-emerald-950/40 border border-emerald-800/60">
-                    <span className="text-[10px] text-emerald-300 block">Avg Order Value (AOV)</span>
-                    <span className="font-bold text-emerald-400">{formatIDR(aov)}</span>
+                  <div className="p-1.5 rounded bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800">
+                    <span className="text-[10px] text-slate-400 block">AOV</span>
+                    <span className="font-mono font-medium text-slate-900 dark:text-white">{formatIDR(aov)}</span>
                   </div>
                 </>
               )}
@@ -679,21 +684,21 @@ export default function CreativeModal({
           </div>
 
           {/* Form Actions */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition-colors"
+              className="px-3.5 py-1.5 rounded text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/25 disabled:opacity-50 transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-50 transition-colors"
             >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-              <span>{creativeToEdit ? 'Update in Google Sheet' : 'Save to Google Sheet'}</span>
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+              <span>{creativeToEdit ? 'Update' : 'Save to Sheet'}</span>
             </button>
           </div>
         </form>

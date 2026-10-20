@@ -26,3 +26,4 @@ export const formatROAS = (roas: number): string => {
   const val = Number(roas) || 0;
   return `${val.toFixed(2)}x`;
 };
+

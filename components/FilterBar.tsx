@@ -1,11 +1,10 @@
 'use client';
 
 import React from 'react';
-import { Search, Filter, Download, Sparkles } from 'lucide-react';
+import { Search, Download } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { CreativeRecord } from '@/lib/google-sheets';
-import { formatIDR, formatPct, formatROAS, formatNum } from '@/lib/formatters';
 
 interface FilterBarProps {
   searchQuery: string;
@@ -71,7 +70,7 @@ export default function FilterBar({
     ws.getRow(1).fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FF4F46E5' },
+      fgColor: { argb: 'FF334155' },
     };
 
     creativesToExport.forEach((c) => {
@@ -108,44 +107,50 @@ export default function FilterBar({
   };
 
   return (
-    <div className="p-4 rounded-xl bg-[#0f172a] border border-slate-800 space-y-3">
+    <div className="p-3.5 rounded-md bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 space-y-3">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Search Input */}
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search by Ad Name or Brand..."
-            className="w-full pl-9 pr-3.5 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-indigo-500 transition-colors"
+            placeholder="Search by Creative Name or Brand..."
+            className="w-full pl-8 pr-3 py-1.5 rounded bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:border-indigo-500 transition-colors"
           />
         </div>
 
         {/* Right side: Status toggle & Export */}
         <div className="flex items-center gap-2 self-end md:self-center">
           {/* Analysis Status Toggle */}
-          <div className="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px]">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-900 p-0.5 rounded border border-slate-200 dark:border-slate-800 text-[11px]">
             <button
               onClick={() => onStatusChange('ALL')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                selectedStatus === 'ALL' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
+              className={`px-2.5 py-1 rounded font-medium transition-colors ${
+                selectedStatus === 'ALL'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               All ({creativesToExport.length})
             </button>
             <button
               onClick={() => onStatusChange('ANALYZED')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                selectedStatus === 'ANALYZED' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
+              className={`px-2.5 py-1 rounded font-medium transition-colors ${
+                selectedStatus === 'ANALYZED'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Analyzed
             </button>
             <button
               onClick={() => onStatusChange('PENDING')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                selectedStatus === 'PENDING' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
+              className={`px-2.5 py-1 rounded font-medium transition-colors ${
+                selectedStatus === 'PENDING'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Pending
@@ -155,7 +160,7 @@ export default function FilterBar({
           {/* Export to Excel */}
           <button
             onClick={handleExportExcel}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 hover:bg-slate-800 text-xs font-semibold text-slate-200 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors"
             title="Export filtered table to Excel"
           >
             <Download className="w-3.5 h-3.5 text-slate-400" />
@@ -165,14 +170,13 @@ export default function FilterBar({
       </div>
 
       {/* Filter Dropdowns row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 border-t border-slate-800/80 text-xs">
-        {/* Brand */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
         <div>
-          <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Brand</label>
+          <label className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block mb-1">Brand</label>
           <select
             value={selectedBrand}
             onChange={(e) => onBrandChange(e.target.value)}
-            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-hidden focus:border-indigo-500"
+            className="w-full px-2 py-1 rounded bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
           >
             <option value="ALL">All Brands</option>
             {brands.map((b) => (
@@ -183,13 +187,12 @@ export default function FilterBar({
           </select>
         </div>
 
-        {/* Ad Type */}
         <div>
-          <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Ad Type</label>
+          <label className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block mb-1">Ad Type</label>
           <select
             value={selectedAdType}
             onChange={(e) => onAdTypeChange(e.target.value)}
-            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-hidden focus:border-indigo-500"
+            className="w-full px-2 py-1 rounded bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
           >
             <option value="ALL">All Ad Types</option>
             {adTypes.map((t) => (
@@ -200,13 +203,12 @@ export default function FilterBar({
           </select>
         </div>
 
-        {/* Format */}
         <div>
-          <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Format</label>
+          <label className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block mb-1">Format</label>
           <select
             value={selectedFormat}
             onChange={(e) => onFormatChange(e.target.value)}
-            className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-hidden focus:border-indigo-500"
+            className="w-full px-2 py-1 rounded bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:border-indigo-500"
           >
             <option value="ALL">All Formats</option>
             <option value="Video">Video</option>
@@ -215,7 +217,6 @@ export default function FilterBar({
           </select>
         </div>
 
-        {/* Reset Filters */}
         <div className="flex items-end">
           <button
             onClick={() => {
@@ -225,7 +226,7 @@ export default function FilterBar({
               onFormatChange('ALL');
               onStatusChange('ALL');
             }}
-            className="w-full py-1.5 px-3 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 hover:text-white hover:border-slate-700 text-xs font-medium transition-colors"
+            className="w-full py-1 px-3 rounded border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-medium transition-colors"
           >
             Reset Filters
           </button>
