@@ -301,6 +301,20 @@ export async function getCreativeById(id: string): Promise<CreativeRecord | null
   return all.find(r => r.id === id) || null;
 }
 
+async function getNextAvailableRow(
+  sheets: sheets_v4.Sheets,
+  spreadsheetId: string
+): Promise<number> {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${SHEET_NAME}!A:A`,
+  });
+  const rows = res.data.values || [];
+  let nextRow = rows.length + 1;
+  if (nextRow < 2) nextRow = 2;
+  return nextRow;
+}
+
 export async function saveCreative(
   input: Omit<CreativeRecord, 'id' | 'created_at' | 'cpm' | 'ctr' | 'vtr_6s' | 'vtr_15s' | 'hold_ratio'>
 ): Promise<CreativeRecord> {
@@ -319,22 +333,19 @@ export async function saveCreative(
   };
 
   const rowValues = rowFromRecord(fullRecord);
+  const nextRow = await getNextAvailableRow(sheets, spreadsheetId);
+  const targetRange = `${SHEET_NAME}!A${nextRow}:AD${nextRow}`;
 
-  const appendRes = await sheets.spreadsheets.values.append({
+  await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `${SHEET_NAME}!A:AD`,
+    range: targetRange,
     valueInputOption: 'USER_ENTERED',
-    insertDataOption: 'INSERT_ROWS',
     requestBody: { values: [rowValues] },
   });
 
-  const updatedRange = appendRes.data.updates?.updatedRange || '';
-  const matchRow = updatedRange.match(/!A(\d+):/);
-  const rowIndex = matchRow ? parseInt(matchRow[1], 10) : undefined;
-
   return {
     ...fullRecord,
-    rowIndex,
+    rowIndex: nextRow,
   };
 }
 
@@ -360,22 +371,20 @@ export async function saveCreativesBatch(
   });
 
   const rowsValues = fullRecords.map((r) => rowFromRecord(r));
+  const nextRow = await getNextAvailableRow(sheets, spreadsheetId);
+  const endRow = nextRow + rowsValues.length - 1;
+  const targetRange = `${SHEET_NAME}!A${nextRow}:AD${endRow}`;
 
-  const appendRes = await sheets.spreadsheets.values.append({
+  await sheets.spreadsheets.values.update({
     spreadsheetId,
-    range: `${SHEET_NAME}!A:AD`,
+    range: targetRange,
     valueInputOption: 'USER_ENTERED',
-    insertDataOption: 'INSERT_ROWS',
     requestBody: { values: rowsValues },
   });
 
-  const updatedRange = appendRes.data.updates?.updatedRange || '';
-  const matchRow = updatedRange.match(/!A(\d+):/);
-  const startRowIndex = matchRow ? parseInt(matchRow[1], 10) : undefined;
-
   return fullRecords.map((r, idx) => ({
     ...r,
-    rowIndex: startRowIndex !== undefined ? startRowIndex + idx : undefined,
+    rowIndex: nextRow + idx,
   }));
 }
 
