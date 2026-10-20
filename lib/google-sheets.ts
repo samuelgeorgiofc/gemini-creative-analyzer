@@ -338,6 +338,47 @@ export async function saveCreative(
   };
 }
 
+export async function saveCreativesBatch(
+  inputs: Array<Omit<CreativeRecord, 'id' | 'created_at' | 'cpm' | 'ctr' | 'vtr_6s' | 'vtr_15s' | 'hold_ratio'>>
+): Promise<CreativeRecord[]> {
+  if (!inputs.length) return [];
+  await ensureSheetInitialized();
+  const { sheets, spreadsheetId } = getSheetsClient();
+
+  const now = Date.now();
+  const created_at = new Date().toISOString();
+
+  const fullRecords: CreativeRecord[] = inputs.map((input, idx) => {
+    const id = `cr_${now}_${idx}_${Math.random().toString(36).substring(2, 7)}`;
+    const metrics = calculateMetrics(input);
+    return {
+      ...input,
+      id,
+      created_at,
+      ...metrics,
+    };
+  });
+
+  const rowsValues = fullRecords.map((r) => rowFromRecord(r));
+
+  const appendRes = await sheets.spreadsheets.values.append({
+    spreadsheetId,
+    range: `${SHEET_NAME}!A:AD`,
+    valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'INSERT_ROWS',
+    requestBody: { values: rowsValues },
+  });
+
+  const updatedRange = appendRes.data.updates?.updatedRange || '';
+  const matchRow = updatedRange.match(/!A(\d+):/);
+  const startRowIndex = matchRow ? parseInt(matchRow[1], 10) : undefined;
+
+  return fullRecords.map((r, idx) => ({
+    ...r,
+    rowIndex: startRowIndex !== undefined ? startRowIndex + idx : undefined,
+  }));
+}
+
 export async function updateCreative(
   id: string,
   updates: Partial<CreativeRecord>

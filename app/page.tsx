@@ -183,17 +183,21 @@ export default function DashboardPage() {
     }
   };
 
-  // Handle Save
-  const handleCreativeSaved = (saved: CreativeRecord) => {
-    setCreatives((prev) => {
-      const idx = prev.findIndex((c) => c.id === saved.id);
-      if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = saved;
-        return copy;
-      }
-      return [saved, ...prev];
-    });
+  // Handle Save (single or bulk)
+  const handleCreativeSaved = (saved: CreativeRecord | CreativeRecord[]) => {
+    if (Array.isArray(saved)) {
+      setCreatives((prev) => [...saved, ...prev]);
+    } else {
+      setCreatives((prev) => {
+        const idx = prev.findIndex((c) => c.id === saved.id);
+        if (idx >= 0) {
+          const copy = [...prev];
+          copy[idx] = saved;
+          return copy;
+        }
+        return [saved, ...prev];
+      });
+    }
   };
 
   return (
