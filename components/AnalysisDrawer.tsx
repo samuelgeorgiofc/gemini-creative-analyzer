@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Copy,
@@ -30,6 +30,16 @@ export default function AnalysisDrawer({
   onOpenVideoPlayer,
 }: AnalysisDrawerProps) {
   const [copied, setCopied] = useState(false);
+
+  // Close on Escape key press
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen || !creative) return null;
 
@@ -226,34 +236,43 @@ export default function AnalysisDrawer({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="w-full max-w-2xl h-full bg-white dark:bg-[#0f172a] border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col text-slate-900 dark:text-slate-100 animate-in slide-in-from-right duration-200">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-end bg-black/75 backdrop-blur-xs animate-in fade-in duration-150"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-2xl h-full bg-white dark:bg-[#0f172a] border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col text-slate-900 dark:text-slate-100 animate-in slide-in-from-right duration-200"
+      >
         {/* Header */}
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50 dark:bg-[#090d16]">
-          <div className="flex-1 pr-3">
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/40">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shrink-0 bg-slate-50 dark:bg-[#090d16]">
+          <div className="flex-1 min-w-0 pr-1">
+            <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+              <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/40 shrink-0">
                 One-Slider Report
               </span>
               {creative.model_used && (
-                <span className="text-[10px] font-mono text-slate-400">
+                <span className="text-[10px] font-mono text-slate-400 truncate max-w-[140px]">
                   {creative.model_used.replace(/gemini-?/gi, 'AI ')}
                 </span>
               )}
             </div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">
+            <h2
+              className="text-sm font-bold text-slate-900 dark:text-white truncate"
+              title={creative.ad_name}
+            >
               {creative.ad_name}
             </h2>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
               {creative.brand} • {creative.ad_type} • {creative.format}
             </p>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={() => onReanalyze(creative)}
               disabled={isAnalyzing}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 disabled:opacity-50 transition-colors shrink-0 cursor-pointer"
               title="Rerun Multimodal Analysis"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isAnalyzing ? 'animate-spin' : ''}`} />
@@ -262,7 +281,7 @@ export default function AnalysisDrawer({
 
             <button
               onClick={handleCopy}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors shrink-0 cursor-pointer"
               title="Copy markdown report"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -271,7 +290,8 @@ export default function AnalysisDrawer({
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Close report"
+              className="p-1.5 rounded text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
